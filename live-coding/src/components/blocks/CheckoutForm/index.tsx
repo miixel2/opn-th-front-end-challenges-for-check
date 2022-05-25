@@ -4,14 +4,19 @@ import React, {
     useEffect,
     SyntheticEvent,
     ChangeEvent,
+    useState,
 } from "react"
 import useModels from "react-use-models"
 import useValidator from "react-joi"
 import Joi from "joi"
 import {
     validateCardNumber,
+    validateCardExpiry,
+    validateCardCVC,
     formatCardNumber,
     formatCardExpiry,
+    parseCardType,
+    parseCardExpiry,
 } from "creditcardutils"
 
 // Styled Elements
@@ -26,7 +31,13 @@ import {
     Form,
     FieldGroups,
     FieldsMerge,
+    PayButton,
+    InputGroup,
 } from "./index.styled"
+
+// Svg Credit Card Icons
+import { ReactComponent as IconVisa } from "@components/svgs/visa.svg"
+import { ReactComponent as IconMasterCard } from "@components/svgs/mastercard.svg"
 
 type TypeCheckoutFormDefaultValues = {
     email: string | null
@@ -59,6 +70,9 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
         useModels<TypeCheckoutFormDefaultValues>({
             defaultState,
         })
+
+    const [cardType, setCardType] = useState<String>("")
+
     const { state, setData } = useValidator({
         initialData: defaultState,
         schema: Joi.object({
@@ -77,6 +91,11 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                     if (value) {
                         if (!validateCardNumber(value)) {
                             return helpers.error("string.cardNumber")
+                        } else if (
+                            parseCardType(value) !== "visa" &&
+                            parseCardType(value) !== "mastercard"
+                        ) {
+                            return helpers.error("string.cardType")
                         }
                     }
 
@@ -86,17 +105,43 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                 .messages({
                     "string.empty": "Required",
                     "string.cardNumber": "Must be a valid card",
+                    "string.cardType": "Must be Visa / Master card type",
                     "any.required": "Required",
                 }),
-            card_expire: Joi.string().required().messages({
-                "string.empty": "Required",
-                "any.required": "Required",
-            }),
-            cvv: Joi.string().length(3).required().messages({
-                "string.empty": "Required",
-                "string.length": "Maximum 3 digits",
-                "any.required": "Required",
-            }),
+            card_expire: Joi.string()
+                .custom((value, helpers) => {
+                    if (value) {
+                        if (!validateCardExpiry(parseCardExpiry(value))) {
+                            return helpers.error("string.cardExpire")
+                        }
+                    }
+
+                    return value
+                })
+                .required()
+                .messages({
+                    "string.empty": "Required",
+                    "string.cardExpire": "Must be valid expiration date",
+                    "any.required": "Required",
+                }),
+            cvv: Joi.string()
+                .length(3)
+                .custom((value, helpers) => {
+                    if (value) {
+                        if (!validateCardCVC(value)) {
+                            return helpers.error("string.cardCVV")
+                        }
+                    }
+
+                    return value
+                })
+                .required()
+                .messages({
+                    "string.empty": "Required",
+                    "string.cardCVV": "Must be valid CVV",
+                    "string.length": "Maximum 3 digits",
+                    "any.required": "Required",
+                }),
         }),
     })
 
@@ -118,7 +163,9 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
     const formatter = {
         cardNumber: (e: ChangeEvent<HTMLInputElement>) => {
             const value = formatCardNumber(e.target.value)
-
+            // set card type
+            setCardType(parseCardType(value))
+            // set card type
             updateModel("card_number", value)
         },
         cardExpire: (e: ChangeEvent<HTMLInputElement>) => {
@@ -161,15 +208,22 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                             <FieldLabel error={!!getErrors("card_number")}>
                                 Card information
                             </FieldLabel>
-
-                            <Input
-                                {...register.input({
-                                    name: "card_number",
-                                    onChange: formatter.cardNumber,
-                                })}
-                                type="text"
-                                placeholder="1234 1234 1234 1234"
-                            />
+                            <InputGroup>
+                                <Input
+                                    {...register.input({
+                                        name: "card_number",
+                                        onChange: formatter.cardNumber,
+                                    })}
+                                    type="text"
+                                    placeholder="1234 1234 1234 1234"
+                                />
+                                {/* display card type */}
+                                {cardType === "visa" && <IconVisa />}
+                                {cardType === "mastercard" && (
+                                    <IconMasterCard />
+                                )}
+                                {/* display card type */}
+                            </InputGroup>
                         </FieldControl>
 
                         {getErrors("card_number") && (
@@ -212,9 +266,9 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                 </FieldGroups>
 
                 <Actions>
-                    <button disabled={state.$auto_invalid || loading}>
+                    <PayButton disabled={state.$auto_invalid || loading}>
                         {submitText}
-                    </button>
+                    </PayButton>
                 </Actions>
             </Form>
         </Container>
