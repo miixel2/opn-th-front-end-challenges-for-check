@@ -16,7 +16,19 @@ document.title = getAppTitle()
 
 render(
     <StrictMode>
-        <Toaster position="top-center" reverseOrder={true} />
+        <Toaster
+            position="top-center"
+            reverseOrder={true}
+            toastOptions={{
+                success: {
+                    duration: 3000,
+                    style: {
+                        background: "#5BB543",
+                        color: "#fff",
+                    },
+                },
+            }}
+        />
         <Provider store={Store}>
             <App />
         </Provider>

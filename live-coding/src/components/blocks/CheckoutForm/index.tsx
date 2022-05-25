@@ -12,6 +12,9 @@ import {
     validateCardNumber,
     formatCardNumber,
     formatCardExpiry,
+    parseCardType,
+    validateCardExpiry,
+    parseCardExpiry,
 } from "creditcardutils"
 
 // Styled Elements
@@ -26,13 +29,26 @@ import {
     Form,
     FieldGroups,
     FieldsMerge,
+    LeftIconGroup,
+    RelativeBlock,
+    LeftIconGroupMerge,
+    Button,
 } from "./index.styled"
+
+import MasterIcon from "@assets/icon/master.png"
+import VisaIcon from "@assets/icon/visa.png"
+import SecretIcon from "@assets/icon/secret.png"
 
 type TypeCheckoutFormDefaultValues = {
     email: string | null
     card_number: string | null
     card_expire: string | null
     cvv: string | null
+}
+
+type TypeParseCardExpiry = {
+    month: number
+    year: number
 }
 
 export type TypeCheckoutFormValues = NonNullable<TypeCheckoutFormDefaultValues>
@@ -78,6 +94,12 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                         if (!validateCardNumber(value)) {
                             return helpers.error("string.cardNumber")
                         }
+                        if (
+                            parseCardType(value) !== "mastercard" &&
+                            parseCardType(value) !== "visa"
+                        ) {
+                            return helpers.error("string.wrongCardType")
+                        }
                     }
 
                     return value
@@ -86,15 +108,31 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                 .messages({
                     "string.empty": "Required",
                     "string.cardNumber": "Must be a valid card",
+                    "string.wrongCardType": "Wrong card number",
                     "any.required": "Required",
                 }),
-            card_expire: Joi.string().required().messages({
-                "string.empty": "Required",
-                "any.required": "Required",
-            }),
+            card_expire: Joi.string()
+                .required()
+                .custom((value, helpers) => {
+                    const timeExpiry: TypeParseCardExpiry =
+                        parseCardExpiry(value)
+
+                    if (
+                        !validateCardExpiry(timeExpiry.month, timeExpiry.year)
+                    ) {
+                        return helpers.error("string.wrong")
+                    }
+
+                    return
+                })
+                .messages({
+                    "string.empty": "Required",
+                    "string.wrong": "Wrong date",
+                    "any.required": "Required",
+                }),
             cvv: Joi.string().length(3).required().messages({
                 "string.empty": "Required",
-                "string.length": "Maximum 3 digits",
+                "string.length": "Need 3 digits",
                 "any.required": "Required",
             }),
         }),
@@ -145,7 +183,7 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                         <Input
                             {...register.input({ name: "email" })}
                             type="email"
-                            placeholder="you@company.com"
+                            placeholder="john@example.com"
                             autoComplete="current-email"
                         />
                     </FieldControl>
@@ -158,18 +196,32 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                 <FieldGroups>
                     <Fields>
                         <FieldControl>
-                            <FieldLabel error={!!getErrors("card_number")}>
-                                Card information
-                            </FieldLabel>
+                            <RelativeBlock>
+                                <FieldLabel error={!!getErrors("card_number")}>
+                                    Card information
+                                </FieldLabel>
 
-                            <Input
-                                {...register.input({
-                                    name: "card_number",
-                                    onChange: formatter.cardNumber,
-                                })}
-                                type="text"
-                                placeholder="1234 1234 1234 1234"
-                            />
+                                <Input
+                                    {...register.input({
+                                        name: "card_number",
+                                        onChange: formatter.cardNumber,
+                                    })}
+                                    type="text"
+                                    placeholder="1234 1234 1234 1234"
+                                />
+                                <LeftIconGroup>
+                                    <img
+                                        src={VisaIcon}
+                                        height="auto"
+                                        width={25}
+                                    />
+                                    <img
+                                        src={MasterIcon}
+                                        height="auto"
+                                        width={25}
+                                    />
+                                </LeftIconGroup>
+                            </RelativeBlock>
                         </FieldControl>
 
                         {getErrors("card_number") && (
@@ -198,23 +250,35 @@ const CheckoutForm: FC<CheckoutFormProps> = ({
                         </Fields>
 
                         <Fields>
-                            <Input
-                                {...register.input({ name: "cvv" })}
-                                type="text"
-                                placeholder="123"
-                            />
+                            <RelativeBlock>
+                                <Input
+                                    {...register.input({ name: "cvv" })}
+                                    type="text"
+                                    placeholder="CVC"
+                                />
 
-                            {getErrors("cvv") && (
-                                <ErrorMessage>{getErrors("cvv")}</ErrorMessage>
-                            )}
+                                <LeftIconGroupMerge>
+                                    <img
+                                        src={SecretIcon}
+                                        height="auto"
+                                        width={25}
+                                    />
+                                </LeftIconGroupMerge>
+
+                                {getErrors("cvv") && (
+                                    <ErrorMessage>
+                                        {getErrors("cvv")}
+                                    </ErrorMessage>
+                                )}
+                            </RelativeBlock>
                         </Fields>
                     </FieldsMerge>
                 </FieldGroups>
 
                 <Actions>
-                    <button disabled={state.$auto_invalid || loading}>
+                    <Button disabled={state.$auto_invalid || loading}>
                         {submitText}
-                    </button>
+                    </Button>
                 </Actions>
             </Form>
         </Container>

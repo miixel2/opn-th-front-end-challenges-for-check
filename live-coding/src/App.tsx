@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { Router, Route, Switch } from "wouter"
 
 // Core Hooks
@@ -13,7 +13,7 @@ const App = () => {
     routePreprocess(Routes)
 
     return (
-        <Router base={baseUrl}>
+        <Router>
             <Switch>
                 {Routes.map(({ component, path, key }) => (
                     <Route

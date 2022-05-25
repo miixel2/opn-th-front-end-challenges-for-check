@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
                 "@hooks": Path.resolve(__dirname, "src/hooks"),
                 "@views": Path.resolve(__dirname, "src/views"),
                 "@styles": Path.resolve(__dirname, "src/styles"),
+                "@assets": Path.resolve(__dirname, "src/assets"),
             },
         },
     }
