@@ -43,6 +43,9 @@ export const FieldsMerge = styled.section`
 
 export const FieldControl = styled.label`
     display: block;
+    &.inputWithIcon {
+        position: relative;
+    }
 `
 
 type FieldLabelProps = {
@@ -83,6 +86,17 @@ export const Input = styled.input`
     &::placeholder {
         opacity: 0.5;
     }
+
+    .left-icon {
+        position: absolute;
+        left: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        svg {
+            fill: black;
+            transition: 0.3s;
+        }
+    }
 `
 
 export const ErrorMessage = styled.div`
@@ -97,4 +111,38 @@ export const Actions = styled.article`
     justify-content: center;
 `
 
-export const Fields = styled.article.attrs(() => ({ className: "fields" }))``
+export const Fields = styled.article.attrs(() => ({ className: "fields" }))`
+    &.inputWithIcon {
+        position: relative;
+    }
+`
+
+export const RelativeBlock = styled.div`
+    position: relative;
+`
+
+export const LeftIconGroup = styled.div`
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+`
+export const LeftIconGroupMerge = styled.div`
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+`
+export const Button = styled.button`
+    background-color: #3c4257;
+    color: white;
+    padding: 7px 20px;
+    border-radius: 4px;
+    box-shadow: 0px 3px 20px rgba(0, 0, 0, 0.1);
+`

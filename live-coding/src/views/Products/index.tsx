@@ -58,7 +58,7 @@ const PageProducts: FC<InterfaceProductsProps> = ({
 }) => {
     usePageClass({ name: BlockName })
 
-    const [, setLocation] = useLocation()
+    const [location, setLocation] = useLocation()
 
     const dispatch = useDispatch()
 

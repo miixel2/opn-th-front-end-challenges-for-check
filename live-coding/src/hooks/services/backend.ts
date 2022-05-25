@@ -30,6 +30,7 @@ export type TypeProductListResponse = {
 }
 
 export type TypePaymentRequest = {
+    requestId: string
     paymentInfo: {
         email: string
         cardInfo: {
@@ -115,11 +116,13 @@ export const postPayment = () => {
         error: null,
     }
 
-    const { state, setState } = useApiBackend<TypePaymentState>(defaultState)
+    const { Request, state, setState, successResolver, isCancel } =
+        useApiBackend<TypePaymentState>(defaultState)
 
     const post = useCallback(
-        async (payload: TypePaymentRequest) => {
+        async (body: TypePaymentRequest) => {
             // On Request state
+
             setState((old: any) => ({
                 ...old,
                 loading: true,
@@ -128,8 +131,33 @@ export const postPayment = () => {
 
             // Api request
             // TODO: Bind endpoint request
-            await wait(3000)
+            const Api = Request({
+                method: "post",
+                url: `/pay`,
+                data: { body },
+            })
+                .then(successResolver)
+                // Success
+                .then((data: TypeProductListResponse) => {
+                    const { products = defaultState.data } = data
 
+                    setState((old: any) => ({
+                        ...old,
+                        data: products,
+                    }))
+                })
+                // Error
+                .catch((err) => {
+                    // Return cancelled error immediately
+                    if (isCancel(err)) return err
+
+                    setState((old: any) => ({
+                        ...old,
+                        error: err?.response?.data?.message || err.message,
+                    }))
+                })
+
+            if (isCancel(await Api)) return
             // After Request state
             setState((old: any) => ({
                 ...old,
