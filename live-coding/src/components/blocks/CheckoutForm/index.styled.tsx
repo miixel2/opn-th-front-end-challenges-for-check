@@ -97,4 +97,33 @@ export const Actions = styled.article`
     justify-content: center;
 `
 
+export const InputGroup = styled.div`
+    position: relative;
+    & > svg {
+        position: absolute;
+        right: 10px;
+        top: 11px;
+    }
+`
+
+type ButtonLabelProps = {
+    disabled?: boolean
+}
+
+export const PayButton = styled.button`
+    width: 137px;
+    height: 40px;
+    background: #3c4257;
+    box-shadow: 0px 3px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    ${({ disabled = false }: ButtonLabelProps) =>
+        disabled
+            ? css`
+                  color: var(--label);
+              `
+            : css`
+                  color: #ffffff;
+              `};
+`
+
 export const Fields = styled.article.attrs(() => ({ className: "fields" }))``
